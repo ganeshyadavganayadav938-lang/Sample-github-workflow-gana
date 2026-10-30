@@ -1,0 +1,683 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Chess</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, #263c54, transparent 45%),
+        linear-gradient(135deg, #101827, #080e18);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1050px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 30px;
+    align-items: center;
+}
+
+.game {
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.logo {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: #eab96d;
+}
+
+.subtitle {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.status {
+    background: #1e293b;
+    padding: 12px 17px;
+    border-radius: 12px;
+    color: #f5cc8a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.board-wrapper {
+    background: #263344;
+    padding: 12px;
+    border-radius: 17px;
+    box-shadow: 0 25px 70px #0008;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.square {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s;
+}
+
+.light {
+    background: #e9d7b8;
+}
+
+.dark {
+    background: #77916f;
+}
+
+.square.selected {
+    background: #eab96d !important;
+}
+
+.square.last-move {
+    background: #c9c45a;
+}
+
+.piece {
+    font-family: "Segoe UI Symbol", "DejaVu Sans", serif;
+    font-size: clamp(25px, 6vw, 58px);
+    line-height: 1;
+    cursor: grab;
+    z-index: 2;
+    transition: transform .18s ease;
+    animation: appear .2s ease;
+}
+
+.piece.white {
+    color: #fffdf5;
+    text-shadow: 1px 2px 2px #222;
+}
+
+.piece.black {
+    color: #171c25;
+    text-shadow: 1px 2px 2px #ffffff66;
+}
+
+.square:hover .piece {
+    transform: scale(1.12);
+}
+
+.move-dot {
+    width: 25%;
+    height: 25%;
+    background: #243c35aa;
+    border-radius: 50%;
+    position: absolute;
+    z-index: 1;
+}
+
+.capture-dot {
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    border: 5px solid #243c3588;
+    border-radius: 50%;
+}
+
+.coordinates {
+    position: absolute;
+    font-size: 10px;
+    font-weight: bold;
+    opacity: .7;
+    pointer-events: none;
+}
+
+.rank {
+    left: 4px;
+    top: 3px;
+}
+
+.file {
+    right: 4px;
+    bottom: 3px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+button {
+    border: none;
+    outline: none;
+    padding: 13px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .25s;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.12);
+}
+
+.primary {
+    background: #eab96d;
+    color: #172033;
+    flex: 1;
+}
+
+.secondary {
+    background: #26374b;
+    color: white;
+    flex: 1;
+}
+
+.panel {
+    background: #182435;
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 23px;
+    min-height: 430px;
+}
+
+.panel h2 {
+    font-size: 19px;
+    margin-bottom: 20px;
+}
+
+.player {
+    background: #26374b;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player.active {
+    border: 1px solid #eab96d;
+    background: #344254;
+}
+
+.player small {
+    color: #a5b4c5;
+}
+
+.player strong {
+    font-size: 13px;
+}
+
+.moves {
+    height: 230px;
+    overflow-y: auto;
+    margin-top: 20px;
+    padding: 10px;
+    background: #111c2b;
+    border-radius: 10px;
+}
+
+.move-row {
+    display: grid;
+    grid-template-columns: 35px 1fr 1fr;
+    padding: 9px 5px;
+    border-bottom: 1px solid #26374b;
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+.move-number {
+    color: #eab96d;
+}
+
+.move-row span {
+    text-align: center;
+}
+
+.footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 11px;
+    margin-top: 18px;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: scale(.65);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media(max-width: 750px) {
+    body {
+        padding: 15px;
+        align-items: flex-start;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 520px;
+    }
+
+    .panel {
+        min-height: auto;
+    }
+
+    .moves {
+        height: 150px;
+    }
+
+    .header {
+        gap: 10px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .status {
+        font-size: 11px;
+        padding: 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <main class="game">
+
+        <div class="header">
+            <div>
+                <div class="logo">♛ ROYAL <span>CHESS</span></div>
+                <div class="subtitle">THE CLASSIC STRATEGY GAME</div>
+            </div>
+
+            <div class="status" id="status">
+                White's Turn
+            </div>
+        </div>
+
+        <div class="board-wrapper">
+            <div class="board" id="board"></div>
+        </div>
+
+        <div class="controls">
+            <button class="secondary" onclick="undoMove()">
+                ↶ Undo
+            </button>
+
+            <button class="primary" onclick="restartGame()">
+                ↻ New Game
+            </button>
+        </div>
+
+        <div class="footer">
+            THINK SMART. PLAY STRATEGICALLY. WIN ROYALE.
+        </div>
+
+    </main>
+
+    <aside class="panel">
+
+        <h2>♟ Game Information</h2>
+
+        <div class="player" id="whitePlayer">
+            <strong>♔ White Player</strong>
+            <small id="whiteTime">Your Turn</small>
+        </div>
+
+        <div class="player" id="blackPlayer">
+            <strong>♚ Black Player</strong>
+            <small id="blackTime">Waiting</small>
+        </div>
+
+        <h2 style="margin-top:25px;font-size:15px">
+            Move History
+        </h2>
+
+        <div class="moves" id="moves">
+            <p style="color:#64748b;font-size:12px">
+                Moves will appear here...
+            </p>
+        </div>
+
+    </aside>
+
+</div>
+
+<script type="module">
+
+import { Chess } from
+'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
+
+const chess = new Chess();
+
+const board = document.getElementById("board");
+const status = document.getElementById("status");
+const movesElement = document.getElementById("moves");
+
+let selected = null;
+let legalTargets = [];
+let lastMove = null;
+
+const symbols = {
+    wk:"♔", wq:"♕", wr:"♖",
+    wb:"♗", wn:"♘", wp:"♙",
+    bk:"♚", bq:"♛", br:"♜",
+    bb:"♝", bn:"♞", bp:"♟"
+};
+
+function renderBoard() {
+
+    board.innerHTML = "";
+
+    const files = "abcdefgh";
+    const position = chess.board();
+
+    position.forEach((row, r) => {
+
+        row.forEach((piece, c) => {
+
+            const square = document.createElement("div");
+
+            const squareName =
+                files[c] + (8-r);
+
+            square.className =
+                "square " +
+                ((r+c)%2===0 ? "light":"dark");
+
+            if(selected === squareName)
+                square.classList.add("selected");
+
+            if(lastMove &&
+                (lastMove.from === squareName ||
+                 lastMove.to === squareName)) {
+                square.classList.add("last-move");
+            }
+
+            if(piece) {
+
+                const symbol =
+                    piece.color + piece.type;
+
+                const span = document.createElement("span");
+
+                span.className =
+                    "piece " +
+                    (piece.color === "w" ? "white":"black");
+
+                span.textContent = symbols[symbol];
+
+                square.appendChild(span);
+            }
+
+            if(legalTargets.includes(squareName)) {
+
+                const marker = document.createElement("div");
+
+                marker.className =
+                    piece ? "capture-dot":"move-dot";
+
+                square.appendChild(marker);
+            }
+
+            if(c===0) {
+
+                const rank = document.createElement("span");
+
+                rank.className = "coordinates rank";
+                rank.textContent = 8-r;
+
+                square.appendChild(rank);
+            }
+
+            if(r===7) {
+
+                const file = document.createElement("span");
+
+                file.className = "coordinates file";
+                file.textContent = files[c];
+
+                square.appendChild(file);
+            }
+
+            square.addEventListener("click", () => {
+                handleSquare(squareName);
+            });
+
+            board.appendChild(square);
+
+        });
+
+    });
+
+    updateInfo();
+}
+
+function handleSquare(square) {
+
+    if(chess.isGameOver()) return;
+
+    const piece = chess.get(square);
+
+    if(selected) {
+
+        if(legalTargets.includes(square)) {
+
+            let promotion;
+
+            const movingPiece = chess.get(selected);
+
+            if(movingPiece?.type === "p" &&
+               (square.endsWith("8") ||
+                square.endsWith("1"))) {
+
+                promotion = prompt(
+                    "Promote to q (Queen), r (Rook), b (Bishop), n (Knight)",
+                    "q"
+                );
+
+                promotion = (promotion || "q").toLowerCase();
+
+                if(!["q","r","b","n"].includes(promotion))
+                    promotion = "q";
+            }
+
+            try {
+
+                const move = chess.move({
+                    from: selected,
+                    to: square,
+                    promotion: promotion || "q"
+                });
+
+                if(move) {
+                    lastMove = {
+                        from: move.from,
+                        to: move.to
+                    };
+                }
+
+            } catch(error) {
+                console.log(error);
+            }
+
+            selected = null;
+            legalTargets = [];
+
+            renderBoard();
+            return;
+        }
+
+    }
+
+    if(piece && piece.color === chess.turn()) {
+
+        selected = square;
+
+        legalTargets = chess.moves({
+            square: square,
+            verbose: true
+        }).map(move => move.to);
+
+    } else {
+
+        selected = null;
+        legalTargets = [];
+
+    }
+
+    renderBoard();
+}
+
+function updateInfo() {
+
+    const turn = chess.turn();
+
+    const white = document.getElementById("whitePlayer");
+    const black = document.getElementById("blackPlayer");
+
+    white.classList.toggle("active",turn==="w");
+    black.classList.toggle("active",turn==="b");
+
+    document.getElementById("whiteTime").textContent =
+        turn==="w" ? "Playing Now":"Waiting";
+
+    document.getElementById("blackTime").textContent =
+        turn==="b" ? "Playing Now":"Waiting";
+
+    let message = turn==="w" ?
+        "White's Turn":"Black's Turn";
+
+    if(chess.isCheckmate()) {
+        message = "🏆 Checkmate!";
+    } else if(chess.isDraw()) {
+        message = "Game Draw!";
+    } else if(chess.isCheck()) {
+        message = "⚠ Check!";
+    }
+
+    status.textContent = message;
+
+    updateMoves();
+}
+
+function updateMoves() {
+
+    const history = chess.history();
+
+    if(history.length===0) {
+        movesElement.innerHTML =
+            '<p style="color:#64748b;font-size:12px">Moves will appear here...</p>';
+        return;
+    }
+
+    movesElement.innerHTML = "";
+
+    for(let i=0; i<history.length; i+=2) {
+
+        const row = document.createElement("div");
+
+        row.className = "move-row";
+
+        const number = document.createElement("div");
+        number.className = "move-number";
+        number.textContent = (i/2)+1+".";
+
+        const white = document.createElement("span");
+        white.textContent = history[i];
+
+        const black = document.createElement("span");
+        black.textContent = history[i+1] || "";
+
+        row.append(number,white,black);
+
+        movesElement.appendChild(row);
+    }
+
+    movesElement.scrollTop = movesElement.scrollHeight;
+}
+
+function undoMove() {
+
+    chess.undo();
+
+    selected = null;
+    legalTargets = [];
+
+    const history = chess.history({verbose:true});
+
+    lastMove = history.length ?
+        {
+            from:history[history.length-1].from,
+            to:history[history.length-1].to
+        } : null;
+
+    renderBoard();
+}
+
+function restartGame() {
+
+    if(!confirm("Start a new chess game?")) return;
+
+    chess.reset();
+
+    selected = null;
+    legalTargets = [];
+    lastMove = null;
+
+    renderBoard();
+}
+
+// Start the game
+renderBoard();
+
+</script>
+
+</body>
+</html>
